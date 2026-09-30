@@ -242,3 +242,10 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
 }
 
 .preview-canvas video{width:100%;height:100%;object-fit:contain;display:block;background:#000}.preview-canvas:has(video:not([hidden]))::before,.preview-canvas:has(video:not([hidden]))::after{display:none}
+
+/* Uploaded reference: show the whole photo, with a compact prompt area. */
+textarea{min-height:140px;padding:18px;font-size:18px}
+.reference-row:has(.reference-preview:not([hidden])) .reference-button{display:none}
+.reference-preview:not([hidden]){width:100%;height:auto;aspect-ratio:auto;border-radius:16px;background:#050505}
+.reference-preview:not([hidden]) img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain;background:#050505}
+@media(max-width:620px){textarea{min-height:112px;padding:14px;font-size:16px}.reference-preview:not([hidden]) img{max-height:62vh}}
