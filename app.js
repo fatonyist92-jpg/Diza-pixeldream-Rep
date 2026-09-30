@@ -22,8 +22,8 @@
 
   const referenceInput=$("#referenceInput"),referencePreview=$("#referencePreview"),referenceImage=$("#referenceImage");
   $("#referenceButton").addEventListener("click",()=>referenceInput.click());
-  referenceInput.addEventListener("change",()=>{const f=referenceInput.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.reference=r.result;referenceImage.src=r.result;referencePreview.hidden=false};r.readAsDataURL(f)});
-  $("#removeReference").addEventListener("click",()=>{state.reference=null;referenceInput.value="";referenceImage.removeAttribute("src");referencePreview.hidden=true});
+  referenceInput.addEventListener("change",()=>{const f=referenceInput.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.reference=r.result;referenceImage.src=r.result;referencePreview.hidden=false;referencePreview.classList.add("is-full");referencePreview.parentElement.classList.add("has-reference")};r.readAsDataURL(f)});
+  $("#removeReference").addEventListener("click",()=>{state.reference=null;referenceInput.value="";referenceImage.removeAttribute("src");referencePreview.hidden=true;referencePreview.classList.remove("is-full");referencePreview.parentElement.classList.remove("has-reference")});
 
   const b64u=a=>btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   function randomString(){const a=new Uint8Array(32);crypto.getRandomValues(a);return b64u(a)}
