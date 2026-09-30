@@ -2,11 +2,11 @@
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const APP_KEY="pk_TesLAkzuVWA7guuc";
   const API="https://gen.pollinations.ai";
-  const AUTH_META="https://enter.pollinations.ai/.well-known/oauth-authorization-server";
+  const HUNYUAN="https://multimodalart-hunyuan-video-1-5.hf.space";\n  const AUTH_META="https://enter.pollinations.ai/.well-known/oauth-authorization-server";
   const REDIRECT="https://fatonyist92-jpg.github.io/Diza-pixeldream-Rep/";
   const state={view:"create",mode:"image",ratio:"1:1",quality:"standard",reference:null,latest:null,token:sessionStorage.getItem("dizaPollinationsToken"),models:[]};
   const promptInput=$("#promptInput"), charCount=$("#charCount"), generateButton=$("#generateButton"), generateLabel=$("#generateLabel"), engineSelect=$("#engineSelect");
-  const resultSection=$("#resultSection"),progressState=$("#progressState"),previewState=$("#previewState"),progressTitle=$("#progressTitle"),progressDetail=$("#progressDetail"),progressBar=$("#progressBar"),previewCanvas=$("#previewCanvas"),generatedImage=$("#generatedImage"),previewPrompt=$("#previewPrompt"),previewMode=$("#previewMode");
+  const resultSection=$("#resultSection"),progressState=$("#progressState"),previewState=$("#previewState"),progressTitle=$("#progressTitle"),progressDetail=$("#progressDetail"),progressBar=$("#progressBar"),previewCanvas=$("#previewCanvas"),generatedImage=$("#generatedImage"),generatedVideo=$("#generatedVideo"),previewPrompt=$("#previewPrompt"),previewMode=$("#previewMode");
 
   function switchView(view){state.view=view; $$(".view").forEach(p=>p.classList.toggle("is-active",p.dataset.viewPanel===view)); $$("[data-view]").forEach(b=>{const a=b.dataset.view===view;b.classList.toggle("is-active",a);if(b.classList.contains("nav-item"))b.setAttribute("aria-current",a?"page":"false")});if(view==="gallery")renderGallery();scrollTo({top:0,behavior:document.body.classList.contains("reduce-motion")?"auto":"smooth"})}
   $$("[data-view]").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
