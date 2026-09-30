@@ -2,7 +2,8 @@
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const APP_KEY="pk_TesLAkzuVWA7guuc";
   const API="https://gen.pollinations.ai";
-  const HUNYUAN="https://multimodalart-hunyuan-video-1-5.hf.space";\n  const AUTH_META="https://enter.pollinations.ai/.well-known/oauth-authorization-server";
+  const HUNYUAN="https://multimodalart-hunyuan-video-1-5.hf.space";
+  const AUTH_META="https://enter.pollinations.ai/.well-known/oauth-authorization-server";
   const REDIRECT="https://fatonyist92-jpg.github.io/Diza-pixeldream-Rep/";
   const state={view:"create",mode:"image",ratio:"1:1",quality:"standard",reference:null,latest:null,token:sessionStorage.getItem("dizaPollinationsToken"),models:[]};
   const promptInput=$("#promptInput"), charCount=$("#charCount"), generateButton=$("#generateButton"), generateLabel=$("#generateLabel"), engineSelect=$("#engineSelect");
