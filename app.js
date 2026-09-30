@@ -1,194 +1,45 @@
 (() => {
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const APP_KEY="pk_hTiE2KfYHIx8s5FR";
+  const API="https://gen.pollinations.ai";
+  const AUTH_META="https://enter.pollinations.ai/.well-known/oauth-authorization-server";
+  const REDIRECT="https://fatonyist92-jpg.github.io/Diza-pixeldream-Rep/";
+  const state={view:"create",mode:"image",ratio:"1:1",quality:"standard",reference:null,latest:null,token:sessionStorage.getItem("dizaPollinationsToken"),models:[]};
+  const promptInput=$("#promptInput"), charCount=$("#charCount"), generateButton=$("#generateButton"), generateLabel=$("#generateLabel"), engineSelect=$("#engineSelect");
+  const resultSection=$("#resultSection"),progressState=$("#progressState"),previewState=$("#previewState"),progressTitle=$("#progressTitle"),progressDetail=$("#progressDetail"),progressBar=$("#progressBar"),previewCanvas=$("#previewCanvas"),generatedImage=$("#generatedImage"),previewPrompt=$("#previewPrompt"),previewMode=$("#previewMode");
 
-  const state = {
-    view: "create",
-    mode: "image",
-    ratio: "1:1",
-    quality: "standard",
-    reference: null,
-    latest: null,
-  };
+  function switchView(view){state.view=view; $$(".view").forEach(p=>p.classList.toggle("is-active",p.dataset.viewPanel===view)); $$("[data-view]").forEach(b=>{const a=b.dataset.view===view;b.classList.toggle("is-active",a);if(b.classList.contains("nav-item"))b.setAttribute("aria-current",a?"page":"false")});if(view==="gallery")renderGallery();scrollTo({top:0,behavior:document.body.classList.contains("reduce-motion")?"auto":"smooth"})}
+  $$("[data-view]").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
 
-  const promptInput = $("#promptInput");
-  const charCount = $("#charCount");
-  const generateButton = $("#generateButton");
-  const resultSection = $("#resultSection");
-  const progressState = $("#progressState");
-  const previewState = $("#previewState");
-  const progressTitle = $("#progressTitle");
-  const progressDetail = $("#progressDetail");
-  const progressBar = $("#progressBar");
-  const previewCanvas = $("#previewCanvas");
-  const previewPrompt = $("#previewPrompt");
-  const previewMode = $("#previewMode");
+  function authUI(){const on=!!state.token;$("#engineStatus").textContent=on?"Pollinations connected":"Connect Pollinations";$("#railStatus").textContent=on?"AI engine online":"Pollinations ready";$("#providerBadge").textContent=on?"Connected":"Sign in required";$("#providerHint").textContent=on?"Live generation uses your authorized Pollinations balance.":"Sign in with Pollinations once, then generate with your authorized Pollen balance.";generateLabel.textContent=on?"Generate":"Connect & create"}
+  function updatePromptState(){charCount.textContent=`${promptInput.value.length}/500`;generateButton.disabled=!promptInput.value.trim()}
+  promptInput.addEventListener("input",updatePromptState);$("#clearPrompt").addEventListener("click",()=>{promptInput.value="";updatePromptState();promptInput.focus()});
 
-  function switchView(view) {
-    state.view = view;
-    $$(".view").forEach((panel) => panel.classList.toggle("is-active", panel.dataset.viewPanel === view));
-    $$("[data-view]").forEach((button) => {
-      const active = button.dataset.view === view;
-      button.classList.toggle("is-active", active);
-      if (button.classList.contains("nav-item")) button.setAttribute("aria-current", active ? "page" : "false");
-    });
-    if (view === "gallery") renderGallery();
-    window.scrollTo({ top: 0, behavior: document.body.classList.contains("reduce-motion") ? "auto" : "smooth" });
-  }
+  $$(".segment[data-mode]").forEach(b=>b.addEventListener("click",()=>{state.mode=b.dataset.mode;$$(".segment[data-mode]").forEach(x=>x.classList.toggle("is-active",x===b));loadModels()}));
+  $$("#ratioChips .chip").forEach(b=>b.addEventListener("click",()=>{state.ratio=b.dataset.ratio;$$("#ratioChips .chip").forEach(x=>x.classList.toggle("is-active",x===b))}));
+  $$("#qualityControl .segment").forEach(b=>b.addEventListener("click",()=>{state.quality=b.dataset.quality;$$("#qualityControl .segment").forEach(x=>x.classList.toggle("is-active",x===b))}));
 
-  $$("[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
+  const referenceInput=$("#referenceInput"),referencePreview=$("#referencePreview"),referenceImage=$("#referenceImage");
+  $("#referenceButton").addEventListener("click",()=>referenceInput.click());
+  referenceInput.addEventListener("change",()=>{const f=referenceInput.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.reference=r.result;referenceImage.src=r.result;referencePreview.hidden=false};r.readAsDataURL(f)});
+  $("#removeReference").addEventListener("click",()=>{state.reference=null;referenceInput.value="";referenceImage.removeAttribute("src");referencePreview.hidden=true});
 
-  function updatePromptState() {
-    const length = promptInput.value.length;
-    charCount.textContent = `${length}/500`;
-    generateButton.disabled = !promptInput.value.trim();
-  }
-  promptInput.addEventListener("input", updatePromptState);
-  $("#clearPrompt").addEventListener("click", () => {
-    promptInput.value = "";
-    updatePromptState();
-    promptInput.focus();
-  });
+  const b64u=a=>btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  function randomString(){const a=new Uint8Array(32);crypto.getRandomValues(a);return b64u(a)}
+  async function startAuth(){const meta=await fetch(AUTH_META).then(r=>{if(!r.ok)throw Error("OAuth discovery failed");return r.json()});const verifier=randomString(),csrf=randomString();const challenge=b64u(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier)));sessionStorage.setItem("dizaPkceVerifier",verifier);sessionStorage.setItem("dizaOAuthState",csrf);const u=new URL(meta.authorization_endpoint);u.searchParams.set("client_id",APP_KEY);u.searchParams.set("redirect_uri",REDIRECT);u.searchParams.set("response_type","code");u.searchParams.set("state",csrf);u.searchParams.set("code_challenge",challenge);u.searchParams.set("code_challenge_method","S256");u.searchParams.set("scope","usage");u.searchParams.set("budget","5");u.searchParams.set("expiry","7");location.href=u.toString()}
+  async function finishAuth(){const q=new URLSearchParams(location.search),code=q.get("code");if(!code)return;const saved=sessionStorage.getItem("dizaOAuthState");if(!saved||q.get("state")!==saved)throw Error("OAuth state mismatch");const meta=await fetch(AUTH_META).then(r=>r.json());const body=new URLSearchParams({grant_type:"authorization_code",code,redirect_uri:REDIRECT,client_id:APP_KEY,code_verifier:sessionStorage.getItem("dizaPkceVerifier")||""});const res=await fetch(meta.token_endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});if(!res.ok)throw Error("Pollinations authorization failed");const data=await res.json();state.token=data.access_token;sessionStorage.setItem("dizaPollinationsToken",state.token);sessionStorage.removeItem("dizaPkceVerifier");sessionStorage.removeItem("dizaOAuthState");history.replaceState({},document.title,REDIRECT);authUI()}
 
-  $$(".segment[data-mode]").forEach((button) => button.addEventListener("click", () => {
-    state.mode = button.dataset.mode;
-    $$(".segment[data-mode]").forEach((item) => item.classList.toggle("is-active", item === button));
-  }));
+  async function loadModels(){try{const endpoint=state.mode==="video"?"/video/models":"/image/models";const data=await fetch(API+endpoint).then(r=>{if(!r.ok)throw Error("Model catalog unavailable");return r.json()});const list=Array.isArray(data)?data:(data.data||data.models||[]);state.models=list;engineSelect.innerHTML="";list.filter(m=>typeof m==="string"||m.type===state.mode||!m.type).forEach(m=>{const id=typeof m==="string"?m:(m.id||m.model);if(!id)return;const o=document.createElement("option");o.value=id;o.textContent=typeof m==="string"?m:(m.name||id);engineSelect.appendChild(o)});if(!engineSelect.options.length){const o=document.createElement("option");o.value=state.mode==="image"?"flux":"veo";o.textContent=o.value;engineSelect.appendChild(o)}}catch(e){engineSelect.innerHTML='<option value="flux">Flux Schnell</option>'}}
 
-  $$("#ratioChips .chip").forEach((button) => button.addEventListener("click", () => {
-    state.ratio = button.dataset.ratio;
-    $$("#ratioChips .chip").forEach((item) => item.classList.toggle("is-active", item === button));
-  }));
+  function dims(){const high=state.quality==="high",long=high?1536:1024,short=high?1152:768;return {"1:1":[long,long],"4:5":[short,Math.round(short*1.25)],"9:16":[short,Math.round(short*16/9)],"16:9":[Math.round(short*16/9),short]}[state.ratio]}
+  async function generate(){if(!state.token){await startAuth();return}if(state.mode!=="image"){showError("Video routing is visible, but this first live pass enables image generation only.");return}const prompt=promptInput.value.trim();if(!prompt)return;generateButton.disabled=true;resultSection.hidden=false;progressState.hidden=false;previewState.hidden=true;generatedImage.hidden=true;progressBar.style.width="15%";progressTitle.textContent="Checking prompt";progressDetail.textContent="Preparing Pollinations request…";resultSection.scrollIntoView({behavior:"smooth",block:"start"});try{const [width,height]=dims();progressBar.style.width="40%";progressTitle.textContent="Enhancing & generating";progressDetail.textContent="Pollinations is creating the image…";const body={model:engineSelect.value||"flux",prompt,size:`${width}x${height}`,response_format:"url",n:1,enhance:true,safe:true};const res=await fetch(API+"/v1/images/generations",{method:"POST",headers:{Authorization:`Bearer ${state.token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});if(res.status===401){sessionStorage.removeItem("dizaPollinationsToken");state.token=null;authUI();throw Error("Authorization expired. Tap Generate to connect again.")}if(res.status===402)throw Error("Pollinations balance/budget is exhausted.");if(!res.ok){let msg="Generation failed";try{const e=await res.json();msg=e?.error?.message||e?.message||msg}catch{}throw Error(msg)}const data=await res.json();const url=data?.data?.[0]?.url;if(!url)throw Error("Provider returned no image URL");progressBar.style.width="100%";progressTitle.textContent="Finishing";progressDetail.textContent="Loading generated image…";generatedImage.src=url;await new Promise((ok,no)=>{generatedImage.onload=ok;generatedImage.onerror=no});generatedImage.hidden=false;previewCanvas.style.aspectRatio=state.ratio.replace(":"," / ");previewPrompt.textContent=prompt;previewMode.textContent=`Image · ${engineSelect.value} · ${state.ratio} · ${state.quality}`;state.latest={id:Date.now(),prompt,mode:"image",ratio:state.ratio,quality:state.quality,model:engineSelect.value,url,createdAt:new Date().toISOString()};progressState.hidden=true;previewState.hidden=false}catch(e){showError(e.message||"Generation failed")}finally{generateButton.disabled=!promptInput.value.trim()}}
+  function showError(msg){resultSection.hidden=false;progressState.hidden=false;previewState.hidden=true;progressTitle.textContent="Couldn’t generate";progressDetail.textContent=msg;progressBar.style.width="0%";generateButton.disabled=!promptInput.value.trim()}
+  generateButton.addEventListener("click",generate);
 
-  $$("#qualityControl .segment").forEach((button) => button.addEventListener("click", () => {
-    state.quality = button.dataset.quality;
-    $$("#qualityControl .segment").forEach((item) => item.classList.toggle("is-active", item === button));
-  }));
+  $("#saveToGallery").addEventListener("click",()=>{if(!state.latest)return;const g=JSON.parse(localStorage.getItem("dizaDreamGallery")||"[]");if(!g.some(x=>x.id===state.latest.id))g.unshift(state.latest);localStorage.setItem("dizaDreamGallery",JSON.stringify(g.slice(0,24)));$("#saveToGallery").textContent="Saved";setTimeout(()=>$("#saveToGallery").textContent="Save to gallery",1100)});
+  function renderGallery(){const grid=$("#galleryGrid"),empty=$("#galleryEmpty"),g=JSON.parse(localStorage.getItem("dizaDreamGallery")||"[]");grid.innerHTML="";empty.hidden=g.length>0;g.forEach(item=>{const card=document.createElement("article");card.className="gallery-card";card.innerHTML='<div class="gallery-art"></div><div class="gallery-card-body"><strong></strong><span></span></div>';const art=$(".gallery-art",card);if(item.url){art.style.backgroundImage=`url("${item.url}")`;art.style.backgroundSize="cover";art.style.backgroundPosition="center"}$("strong",card).textContent=item.prompt;$("span",card).textContent=`${item.mode} · ${item.model||""} · ${item.ratio}`;grid.appendChild(card)})}
 
-  const referenceInput = $("#referenceInput");
-  const referencePreview = $("#referencePreview");
-  const referenceImage = $("#referenceImage");
-  $("#referenceButton").addEventListener("click", () => referenceInput.click());
-  referenceInput.addEventListener("change", () => {
-    const file = referenceInput.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      state.reference = reader.result;
-      referenceImage.src = reader.result;
-      referencePreview.hidden = false;
-    };
-    reader.readAsDataURL(file);
-  });
-  $("#removeReference").addEventListener("click", () => {
-    state.reference = null;
-    referenceInput.value = "";
-    referenceImage.removeAttribute("src");
-    referencePreview.hidden = true;
-  });
-
-  function ratioToCss(ratio) {
-    return ratio.replace(":", " / ");
-  }
-
-  function hashText(text) {
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
-    return Math.abs(hash);
-  }
-
-  function setPreviewArt(prompt) {
-    const seed = hashText(prompt);
-    const a = 15 + (seed % 55);
-    const b = 20 + ((seed >> 2) % 55);
-    const c = 8 + ((seed >> 4) % 24);
-    previewCanvas.style.aspectRatio = ratioToCss(state.ratio);
-    previewCanvas.style.background = `
-      radial-gradient(circle at ${a}% ${b}%, rgba(255,255,255,.62) 0 ${Math.max(2, c/5)}%, transparent ${Math.max(3, c/4)}%),
-      radial-gradient(circle at ${100-a}% ${Math.max(20, 90-b)}%, rgba(255,255,255,.16) 0 ${c}%, transparent ${c+1}%),
-      linear-gradient(${110 + seed % 80}deg, #222, #050505 48%, #171717)`;
-  }
-
-  const progressSteps = [
-    ["Preparing composition", "Building the preview state…", 18],
-    ["Expanding prompt", "Simulating the prompt workflow…", 44],
-    ["Rendering preview", "Drawing a local monochrome placeholder…", 76],
-    ["Finishing", "Polishing the result card…", 100],
-  ];
-
-  function wait(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
-
-  generateButton.addEventListener("click", async () => {
-    if (!promptInput.value.trim()) return;
-    generateButton.disabled = true;
-    resultSection.hidden = false;
-    progressState.hidden = false;
-    previewState.hidden = true;
-    progressBar.style.width = "0%";
-    resultSection.scrollIntoView({ behavior: document.body.classList.contains("reduce-motion") ? "auto" : "smooth", block: "start" });
-
-    for (const [title, detail, percent] of progressSteps) {
-      progressTitle.textContent = title;
-      progressDetail.textContent = detail;
-      progressBar.style.width = percent + "%";
-      await wait(document.body.classList.contains("reduce-motion") ? 80 : 520);
-    }
-
-    const prompt = promptInput.value.trim();
-    state.latest = {
-      id: Date.now(),
-      prompt,
-      mode: state.mode,
-      ratio: state.ratio,
-      quality: state.quality,
-      createdAt: new Date().toISOString(),
-    };
-    setPreviewArt(prompt);
-    previewPrompt.textContent = prompt;
-    previewMode.textContent = `${state.mode === "image" ? "Image" : "Video"} · ${state.ratio} · ${state.quality}`;
-    progressState.hidden = true;
-    previewState.hidden = false;
-    generateButton.disabled = false;
-  });
-
-  $("#saveToGallery").addEventListener("click", () => {
-    if (!state.latest) return;
-    const gallery = JSON.parse(localStorage.getItem("dizaDreamGallery") || "[]");
-    if (!gallery.some((item) => item.id === state.latest.id)) gallery.unshift(state.latest);
-    localStorage.setItem("dizaDreamGallery", JSON.stringify(gallery.slice(0, 24)));
-    $("#saveToGallery").textContent = "Saved";
-    setTimeout(() => ($("#saveToGallery").textContent = "Save to gallery"), 1100);
-  });
-
-  function renderGallery() {
-    const grid = $("#galleryGrid");
-    const empty = $("#galleryEmpty");
-    const gallery = JSON.parse(localStorage.getItem("dizaDreamGallery") || "[]");
-    grid.innerHTML = "";
-    empty.hidden = gallery.length > 0;
-    gallery.forEach((item) => {
-      const card = document.createElement("article");
-      card.className = "gallery-card";
-      card.innerHTML = `
-        <div class="gallery-art"></div>
-        <div class="gallery-card-body">
-          <strong></strong>
-          <span></span>
-        </div>`;
-      $("strong", card).textContent = item.prompt;
-      $("span", card).textContent = `${item.mode} · ${item.ratio} · ${item.quality}`;
-      grid.appendChild(card);
-    });
-  }
-
-  const reduceMotion = $("#reduceMotion");
-  reduceMotion.checked = localStorage.getItem("dizaDreamReduceMotion") === "1";
-  document.body.classList.toggle("reduce-motion", reduceMotion.checked);
-  reduceMotion.addEventListener("change", () => {
-    document.body.classList.toggle("reduce-motion", reduceMotion.checked);
-    localStorage.setItem("dizaDreamReduceMotion", reduceMotion.checked ? "1" : "0");
-  });
-
-  updatePromptState();
-  renderGallery();
+  const reduceMotion=$("#reduceMotion");reduceMotion.checked=localStorage.getItem("dizaDreamReduceMotion")==="1";document.body.classList.toggle("reduce-motion",reduceMotion.checked);reduceMotion.addEventListener("change",()=>{document.body.classList.toggle("reduce-motion",reduceMotion.checked);localStorage.setItem("dizaDreamReduceMotion",reduceMotion.checked?"1":"0")});
+  async function boot(){authUI();updatePromptState();renderGallery();await loadModels();try{await finishAuth()}catch(e){showError(e.message)}}
+  boot();
 })();
