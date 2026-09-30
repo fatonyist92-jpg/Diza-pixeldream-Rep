@@ -1,6 +1,6 @@
 (() => {
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-  const APP_KEY="pk_hTiE2KfYHIx8s5FR";
+  const APP_KEY="pk_TesLAkzuVWA7guuc";
   const API="https://gen.pollinations.ai";
   const AUTH_META="https://enter.pollinations.ai/.well-known/oauth-authorization-server";
   const REDIRECT="https://fatonyist92-jpg.github.io/Diza-pixeldream-Rep/";
