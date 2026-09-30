@@ -33,21 +33,21 @@
 
       <div class="rail-foot">
         <span class="status-dot"></span>
-        <span>UI prototype</span>
+        <span id="railStatus">Pollinations ready</span>
       </div>
     </aside>
 
     <main class="workspace">
       <header class="topbar">
         <div class="mobile-brand"><span class="brand-mark small">D</span><strong>DIZA DREAM</strong></div>
-        <div class="topbar-status"><span class="status-dot"></span><span>Engine not connected</span></div>
+        <div class="topbar-status"><span class="status-dot"></span><span id="engineStatus">Connect Pollinations</span></div>
       </header>
 
       <section id="view-create" class="view is-active" data-view-panel="create">
         <div class="content-frame">
           <div class="eyebrow">CREATE</div>
           <h1>What are you imagining?</h1>
-          <p class="lead">Shape an image or video concept in a focused studio. Provider and GPU integration come after the interface is locked.</p>
+          <p class="lead">Shape an image or video concept in a focused studio. Pollinations powers live generation while the interface stays yours.</p>
 
           <div class="studio-grid">
             <section class="panel prompt-panel">
@@ -95,7 +95,7 @@
               <div class="control-group">
                 <label class="control-label" for="engineSelect">Engine</label>
                 <select id="engineSelect">
-                  <option>UI only · provider later</option>
+                  <option value="flux">Flux Schnell</option>
                 </select>
               </div>
 
@@ -118,9 +118,9 @@
               </div>
 
               <button id="generateButton" class="generate-button" type="button" disabled>
-                <span>Create preview</span><span>✦</span>
+                <span id="generateLabel">Connect & create</span><span>✦</span>
               </button>
-              <p class="fine-print">This phase does not call an AI model. Preview generation below is a local UI simulation.</p>
+              <p class="fine-print"><span id="providerHint">Sign in with Pollinations once, then generate with your authorized Pollen balance.</span></p>
             </aside>
           </div>
 
@@ -130,7 +130,7 @@
                 <span class="panel-kicker">RESULT</span>
                 <h2>Generation workspace</h2>
               </div>
-              <span id="resultBadge" class="badge">UI simulation</span>
+              <span id="resultBadge" class="badge">Pollinations</span>
             </div>
 
             <div class="result-stage">
@@ -142,7 +142,7 @@
               </div>
 
               <div id="previewState" class="preview-state" hidden>
-                <div id="previewCanvas" class="preview-canvas" role="img" aria-label="Generated UI preview"></div>
+                <div id="previewCanvas" class="preview-canvas" role="img" aria-label="Generated AI result"><img id="generatedImage" alt="Generated result" hidden /></div>
                 <div class="preview-meta">
                   <div>
                     <strong id="previewMode">Image · 1:1</strong>
@@ -160,12 +160,12 @@
         <div class="content-frame">
           <div class="eyebrow">GALLERY</div>
           <h1>Your local studies.</h1>
-          <p class="lead">UI previews saved in this browser appear here. Nothing is uploaded.</p>
+          <p class="lead">Generated studies saved in this browser appear here.</p>
           <div id="galleryGrid" class="gallery-grid"></div>
           <div id="galleryEmpty" class="empty-state">
             <span>▦</span>
             <strong>No saved previews yet</strong>
-            <p>Create a prompt, run the UI simulation, then save the result.</p>
+            <p>Create a prompt, generate an image, then save the result.</p>
           </div>
         </div>
       </section>
@@ -174,7 +174,7 @@
         <div class="content-frame narrow">
           <div class="eyebrow">SETTINGS</div>
           <h1>Studio controls.</h1>
-          <p class="lead">Only presentation settings are active in this UI phase.</p>
+          <p class="lead">Generation is connected through Pollinations. Your authorization remains in this browser session.</p>
 
           <div class="settings-stack">
             <div class="setting-row">
@@ -182,11 +182,11 @@
               <span class="badge">Locked</span>
             </div>
             <div class="setting-row">
-              <div><strong>Generation provider</strong><span>Pollinations/provider routing planned for the next phase</span></div>
-              <span class="badge muted">Not connected</span>
+              <div><strong>Generation provider</strong><span>Pollinations BYOP · browser authorization</span></div>
+              <span id="providerBadge" class="badge muted">Sign in required</span>
             </div>
             <div class="setting-row">
-              <div><strong>GPU runtime</strong><span>Intentionally deferred until provider flow is stable</span></div>
+              <div><strong>GPU runtime</strong><span>Managed by generation provider</span></div>
               <span class="badge muted">Deferred</span>
             </div>
             <div class="setting-row">
